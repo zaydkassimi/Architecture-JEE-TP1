@@ -1,8 +1,67 @@
+# TP1 – Injection des Dépendances avec Spring
+
+## Introduction
+
+Ce TP porte sur le principe fondamental de l’**injection des dépendances** (*Dependency Injection*), un concept clé de la programmation orientée objet et du framework Spring.
+L’objectif est d’implémenter progressivement plusieurs approches d’injection, allant du couplage fort manuel jusqu’à l’injection automatique gérée par le conteneur Spring, en passant par une instanciation dynamique via la réflexion.
+
+---
+
+## Environnement de travail
+
+* **IDE** : IntelliJ IDEA Ultimate
+* **Langage** : Java
+* **Framework** : Spring Framework (Core)
+* **Outil de build** : Maven
+
+---
+
+## Architecture de l’application
+
+L’application suit une architecture en couches basée sur deux interfaces :
+
+* **`IDao`** : représente la couche d’accès aux données avec une méthode `getData()` retournant une valeur numérique.
+* **`IMetier`** : représente la couche métier avec une méthode `calcul()` exploitant les données fournies par la couche DAO.
+
+Ce découplage par interfaces permet de réduire les dépendances directes entre les composants et facilite l’injection des dépendances.
+
+---
+
+## Travail réalisé
+
+### 1. Instanciation statique (couplage fort)
+
+Dans cette approche, les classes concrètes sont instanciées directement dans la classe de présentation.
+L’objet `DaoImpl` est créé manuellement et injecté dans `MetierImpl` via le constructeur.
+
+👉 **Limite** : cette méthode crée un **couplage fort**, car toute modification d’implémentation nécessite une recompilation du code.
+
+---
+
+### 2. Instanciation dynamique (couplage faible)
+
+Pour réduire le couplage, cette approche utilise la **réflexion Java**.
+
+Le nom de la classe à instancier est lu depuis un fichier de configuration externe (`config.txt`). Le programme charge dynamiquement la classe à l’exécution avec `Class.forName()`.
+
+👉 **Avantage** : changer d’implémentation ne nécessite qu’une modification du fichier de configuration.
+
+**Fichier `config.txt` :**
+
+```
+ext.DaoImplV2
+```
+
+---
+
 ### 3. Injection avec Spring – Version XML
 
-Spring prend en charge la gestion des objets (beans) et leurs dépendances via un fichier de configuration XML. Le conteneur Spring instancie les beans et effectue l'injection par constructeur automatiquement, sans aucune ligne d'instanciation dans le code Java.
+Spring gère la création des objets (*beans*) et leurs dépendances via un fichier de configuration XML.
+
+Le conteneur Spring instancie automatiquement les beans et injecte les dépendances via le constructeur.
 
 **Fichier `config.xml` :**
+
 ```xml
 <bean id="dao" class="ext.DaoImplV2"/>
 <bean id="metier" class="metier.MetierImpl">
@@ -10,35 +69,53 @@ Spring prend en charge la gestion des objets (beans) et leurs dépendances via u
 </bean>
 ```
 
-Le contexte Spring est chargé avec `ClassPathXmlApplicationContext`, et le bean `metier` est récupéré directement depuis le conteneur.
+Le contexte est chargé avec `ClassPathXmlApplicationContext`, puis le bean `metier` est récupéré depuis le conteneur.
+
+---
 
 ### 4. Injection avec Spring – Version Annotations
 
-La version la plus moderne utilise les annotations Spring pour éliminer complètement la configuration XML. Les classes sont annotées avec `@Repository`, `@Service`, et `@Component`, et Spring scanne automatiquement les packages déclarés pour détecter et injecter les beans. Le contexte est initialisé avec `AnnotationConfigApplicationContext`.
+Cette version moderne utilise les annotations pour remplacer la configuration XML.
 
-Cette approche est la plus concise, la plus lisible, et la plus utilisée dans les projets Spring modernes.
+Les classes sont annotées avec :
+
+* `@Repository`
+* `@Service`
+* `@Component`
+
+Spring scanne automatiquement les packages et injecte les dépendances.
+
+Le contexte est initialisé avec `AnnotationConfigApplicationContext`.
+
+👉 **Avantage** : code plus lisible, moins de configuration, et approche standard dans les projets modernes.
 
 ---
 
 ## Comparaison des approches
 
-| Approche | Couplage | Flexibilité | Complexité |
-|---|---|---|---|
-| Instanciation statique | Fort | Faible | Très simple |
-| Instanciation dynamique | Faible | Moyenne | Modérée |
-| Spring XML | Faible | Haute | Modérée |
-| Spring Annotations | Faible | Haute | Simple |
+| Approche                | Couplage | Flexibilité | Complexité  |
+| ----------------------- | -------- | ----------- | ----------- |
+| Instanciation statique  | Fort     | Faible      | Très simple |
+| Instanciation dynamique | Faible   | Moyenne     | Modérée     |
+| Spring XML              | Faible   | Élevée      | Modérée     |
+| Spring Annotations      | Faible   | Élevée      | Simple      |
 
 ---
 
 ## Résultats obtenus
 
-- Les quatre approches d'injection ont été implémentées et testées avec succès.
-- Le résultat de `calcul()` est affiché correctement dans chaque scénario.
-- Le passage d'une implémentation DAO à une autre (`DaoImpl` → `DaoImplV2`) ne nécessite aucune modification du code métier, ce qui illustre parfaitement le principe **Ouvert/Fermé** (Open/Closed Principle).
+* Les quatre approches ont été implémentées et testées avec succès.
+* La méthode `calcul()` produit le résultat attendu dans chaque cas.
+* Le changement d’implémentation (`DaoImpl` → `DaoImplV2`) ne nécessite aucune modification du code métier.
+
+👉 Cela illustre le principe **Open/Closed** : ouvert à l’extension, fermé à la modification.
 
 ---
 
 ## Conclusion
 
-Ce TP illustre l'évolution naturelle vers une architecture découplée et maintenable. L'injection de dépendances, qu'elle soit manuelle ou gérée par Spring, permet de respecter les principes SOLID en séparant la création des objets de leur utilisation. Spring simplifie considérablement cette gestion grâce à son conteneur IoC, que ce soit via configuration XML ou via annotations, rendant le code plus propre, testable et extensible.
+Ce TP montre l’évolution vers une architecture **découplée, flexible et maintenable**.
+
+L’injection de dépendances permet de séparer la création des objets de leur utilisation, respectant ainsi les principes SOLID.
+
+Spring simplifie cette gestion grâce à son conteneur IoC, que ce soit via configuration XML ou via annotations, rendant le code plus propre, testable et évolutif.
